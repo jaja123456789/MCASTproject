@@ -3,3 +3,4 @@ src/stereo_ptam/__pycache__/
 src/sceneednet-master/__pycache__/
 src/.idea
 src/PyTorch-YOLOv3-master/weights/
+.idea/

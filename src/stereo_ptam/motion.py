@@ -25,7 +25,7 @@ class MotionModel(object):
 
         self.num = 0
 
-
+        self.f = open("00-sptam.txt", "a")
 
     def current_pose(self):
         '''
@@ -59,6 +59,12 @@ class MotionModel(object):
         '''
         Update the motion model when given a new camera pose.
         '''
+
+        transformation_matrix = np.identity(4, dtype=np.float32)
+        transformation_matrix[0:3, 0:3] = np.array(new_orientation.rotation_matrix(), dtype=np.float32)
+        transformation_matrix[0:3, 3] = new_position
+
+        self.f.write(" ".join(['{:.6e}'.format(x) for x in transformation_matrix.flatten()[0:12]]) + "\n")
 
         if self.initialized:
 
