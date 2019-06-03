@@ -25,7 +25,7 @@ class MotionModel(object):
 
         self.num = 0
 
-        self.f = open("00-sptam.txt", "a")
+        self.f = open("10-sptam-mask.txt", "w")
 
     def current_pose(self):
         '''

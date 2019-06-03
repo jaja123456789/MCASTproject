@@ -81,8 +81,8 @@ class ParamsKITTI(Params):
 
         if config == 'GFTT-BRIEF':
             self.feature_detector = cv2.GFTTDetector_create(
-                maxCorners=1000, minDistance=12.0, 
-                qualityLevel=0.001, useHarrisDetector=False)
+                maxCorners=1000, minDistance=8.0,
+                qualityLevel=0.005, useHarrisDetector=False)
 
             self.descriptor_extractor = cv2.xfeatures2d.BriefDescriptorExtractor_create(
                 bytes=32, use_orientation=False)

@@ -10,7 +10,7 @@ import time
 import datetime
 import argparse
 
-# os.chdir("F:/project/PyTorch-YOLOv3-master")
+os.chdir("F:/project/src/PyTorch-YOLOv3-master")
 
 from PIL import Image
 
@@ -25,13 +25,13 @@ from matplotlib.ticker import NullLocator
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_folder", type=str, default="data/samples", help="path to dataset")
+    parser.add_argument("--image_folder", type=str, default="../../data/sequences/10/image_1/", help="path to dataset")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="data/coco.names", help="path to class label file")
     parser.add_argument("--conf_thres", type=float, default=0.8, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.4, help="iou thresshold for non-maximum suppression")
-    parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
+    parser.add_argument("--batch_size", type=int, default=8, help="size of the batches")
     parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--checkpoint_model", type=str, help="path to checkpoint model")
@@ -68,27 +68,48 @@ if __name__ == "__main__":
     imgs = []  # Stores image paths
     img_detections = []  # Stores detections for each image index
 
+    mask_over_classes=[1,2,3,4,5,6,7]
+    img_size = (376, 1241)
+
     print("\nPerforming object detection:")
     prev_time = time.time()
-    for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
-        # Configure input
-        input_imgs = Variable(input_imgs.type(Tensor))
+    with open("../../data/sequences/10/mask-10-1.txt",'w') as f:
+        for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
+            # Configure input
+            input_imgs = Variable(input_imgs.type(Tensor))
 
-        # Get detections
-        with torch.no_grad():
-            print(input_imgs.size())
-            detections = model(input_imgs)
-            detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
+            # Get detections
+            with torch.no_grad():
+                # print(input_imgs.size())
+                detections = model(input_imgs)
+                detections = non_max_suppression(detections, opt.conf_thres, opt.nms_thres)
 
-        # Log progress
-        current_time = time.time()
-        inference_time = datetime.timedelta(seconds=current_time - prev_time)
-        prev_time = current_time
-        print("\t+ Batch %d, Inference Time: %s" % (batch_i, inference_time))
+            # Log progress
+            current_time = time.time()
+            inference_time = datetime.timedelta(seconds=current_time - prev_time)
+            prev_time = current_time
+            print("\t+ Batch %d, Inference Time: %s" % (batch_i, inference_time))
 
-        # Save image and detections
-        imgs.extend(img_paths)
-        img_detections.extend(detections)
+            for img_i, (path, detection) in enumerate(zip(img_paths, detections)):
+                if detection is not None:
+                    # Rescale boxes to original image
+                    detection = rescale_boxes(detection, opt.img_size, img_size)
+                    for single_label in detection:
+                        # img = np.array(Image.open(path))
+                        # print(single_label)
+
+
+                        x1, y1, x2, y2, conf, cls_conf, cls_pred = single_label
+                        if cls_pred in mask_over_classes:
+                            f.write(",".join([str(x) for x in single_label.numpy()]) + "|")
+
+                f.write("\n")
+
+
+            # imgs.extend(img_paths)
+            # img_detections.extend(detections)
+
+    exit()
 
     # Bounding-box colors
     cmap = plt.get_cmap("tab20b")

@@ -7,10 +7,8 @@ from numbers import Number
 from threading import Thread, Lock 
 from queue import Queue
 
-
-
 class ImageFeature(object):
-    def __init__(self, image, params):
+    def __init__(self, image, params, filtering=None):
         # TODO: pyramid representation
         self.image = image 
         self.height, self.width = image.shape[:2]
@@ -29,8 +27,23 @@ class ImageFeature(object):
 
         self._lock = Lock()
 
+        self.filtering = filtering
+
     def extract(self):
-        self.keypoints = self.detector.detect(self.image)
+
+        if self.filtering is not None:
+            mask = np.full(self.image.shape[:2], 255, dtype=np.uint8)
+            # print(self.filtering)
+            for bbox in self.filtering:
+                x1, y1, x2, y2, _, _, _ = bbox
+                cv2.rectangle(mask, (int(float(x1)),int(float(y1))), (int(float(x2)),int(float(y2))), (0), thickness=-1)
+            # cv2.imshow("n", mask)
+            # cv2.waitKey(5)
+
+            self.keypoints = self.detector.detect(self.image, mask)
+        else:
+            self.keypoints = self.detector.detect(self.image)
+
         self.keypoints, self.descriptors = self.extractor.compute(
             self.image, self.keypoints)
 

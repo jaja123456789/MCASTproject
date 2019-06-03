@@ -237,6 +237,7 @@ if __name__ == '__main__':
     parser.add_argument('--no-viz', action='store_true', help='do not visualize')
     parser.add_argument('--dataset', type=str, help='dataset (KITTI/EuRoC)', 
         default='KITTI')
+    parser.add_argument('--mask', type=str, help='mask path', default='')
     parser.add_argument('--path', type=str, help='dataset path', 
         default='path/to/your/KITTI_odometry/sequences/00')
     args = parser.parse_args()
@@ -265,9 +266,18 @@ if __name__ == '__main__':
 
 
     durations = []
+
+    if(args.mask != ''):
+        f0 = open(args.mask+"-0.txt").readlines()
+        f1 = open(args.mask + "-1.txt").readlines()
+
     for i in range(len(dataset))[:]:
-        featurel = ImageFeature(dataset.left[i], params)
-        featurer = ImageFeature(dataset.right[i], params)
+        if (args.mask != ''):
+            featurel = ImageFeature(dataset.left[i], params, filtering=[l.split(",") for l in f0[i].split("|")][:-1] if f0[i]!="\n" else None)
+            featurer = ImageFeature(dataset.right[i], params, filtering=[l.split(",") for l in f1[i].split("|")][:-1] if f1[i]!="\n" else None)
+        else:
+            featurel = ImageFeature(dataset.left[i], params)
+            featurer = ImageFeature(dataset.right[i], params)
         timestamp = dataset.timestamps[i]
 
         time_start = time.time()  
